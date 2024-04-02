@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import cors from 'cors'
 import cookieParser from 'cookie-parser';
 import morgan from 'morgan';
+import userRouter from './routes/user.routes';
 
 dotenv.config();
 const app=express();
@@ -14,6 +15,9 @@ app.use(cors({
 app.use(cookieParser());
 
 app.use(morgan("dev"));
+
+//defining routes for the user related apis.
+app.route('/api/v1/user',userRouter);
 
 app.use("/ping",(req,res)=>{
     res.send("hello ping");    
