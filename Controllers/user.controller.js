@@ -79,10 +79,33 @@ const login=async(req,res,next)=>{
 
 const logout=(req,res,next)=>{
 
+        res.cookie("token",null,{
+            maxAge:0,
+            httpOnly:true,
+            secure:true,
+        });
+
+        res.status(201).json({
+            success:true,
+            message:"User logged out successfully",
+        });
 }
 
 const getProfile=(req,res,next)=>{
+
+    try {
+        const userId=req.user.id;
+        const user=User.findById({userId});
     
+        res.status(201).json({
+            success:true,
+            message:"user fetched successfully",
+            user
+        });
+    } catch (error) {
+        return next(new AppError("Failed to fetch user details",400));
+    }
+
 
 }
 
