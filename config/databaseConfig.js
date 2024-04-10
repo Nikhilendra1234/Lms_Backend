@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 dotenv.config();
 mongoose.set("strictQuery",false);
 const  MONGO_URI=process.env.MONGO_URI;
-console.log(MONGO_URI);
+// console.log(MONGO_URI);
 const connectToDb=async()=>{
     try {
         const{connection}= await mongoose.connect(MONGO_URI);
