@@ -70,15 +70,20 @@ const createCourse=async(req,res,next)=>{
     }
 
     if(req.file){
-        const result=await cloudinary.v2.uploader.upload(req.file.path,{
-            folder:"Backend"
-        });
-
-        if(result){
-            course.thumbnail.public_id=result.public_id;
-            course.thumbnail.secure_url=result.secure_url;
+        try {
+            const result=await cloudinary.v2.uploader.upload(req.file.path,{
+                folder:"Backend"
+            });
+    
+            if(result){
+                course.thumbnail.public_id=result.public_id;
+                course.thumbnail.secure_url=result.secure_url;
+            }
+            fs.rm('/uploads',req.file.filename);
+        } catch (error) {
+            return next(new AppError(error.message,500));
         }
-        fs.rm('/uploads',req.file.filename);
+        
     }
 
     await course.save();
@@ -124,12 +129,87 @@ const updateCourse=async(req,res,next)=>{
 }
 
 const removeCourse=async(req,res,next)=>{
+    try {
+        const {id}=req.params;
+
+    if(!id){
+        return next(new AppError("Course id is required",400));
+    }
+
+    const course=await Course.findByIdAndDelete(id);
+
+    if(!course){
+        return next(new AppError("Couorse doesn not exist",400));
+    }
+    res.status(200).json({
+        success:true,
+        message:"Course deleted successfully",
+        Course
+    });
+
+    } catch (error) {
+        return next(new AppError(error.message,500));
+    }
+}
+
+const addLecturesToCourse=async(req,res,next)=>{
+    try {
+        const {id}=req.params;
+
+    const {title,description}=req.body;
+
+    if(!id || !title || !description){
+        return next(new AppError("All fields are required",400));
+    }
+
+    const course=await Course.findById(id);
+
+    if(!course){
+        return next(new AppError("Course does not exist",400));
+    }
+
+    const lectureData={
+        title,
+        description,
+        lecture:{}
+    }
+    if(req.file){
+        try {
+            const result=await cloudinary.v2.uploader.upload(req.file.path,{
+                folder:"Backend"
+            });
     
+            if(result){
+                lectureData.lecture.public_id=result.public_id;
+                lectureData.lecture.secure_url=result.secure_url;
+            }
+            fs.rm('/uploads',req.file.filename);
+        } catch (error) {
+            return next(new AppError(error.message,500));
+        }
+    }
+
+    course.lectures.push(lectureData);
+    course.noOfLectures=lectures.length;
+
+    await Course.save();
+
+    res.status(200).json({
+        success:true,
+        message:"Lecture Added successfully",
+        course
+    });
+    
+    } catch (error) {
+        return next(new AppError(error.message,500));
+    }
+
 }
 
 export {getAllCourses,
     getLecturesById,
     createCourse,
     updateCourse,
-    removeCourse
+    removeCourse,
+    addLecturesToCourse 
 }
